@@ -1,5 +1,5 @@
 import csv
-from datetime import datetime, date
+from datetime import datetime
 import re
 
 import numpy as np
@@ -7,9 +7,9 @@ import pandas as pd
 
 def load_meped_csv(file_name, as_df=True):
     """
-    Load the meped data into a dictionary or a pandas DataFrame.
+    Load the meped data into a dictionary or a pandas 
+    DataFrame, togled by the as_df kwarg.
     """
-
     numeric_date = re.findall(r'\d+', file_name)[0]
     date_obj = datetime.strptime(numeric_date[2:], '%Y%m%d')
 
