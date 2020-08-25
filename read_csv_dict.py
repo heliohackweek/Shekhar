@@ -19,6 +19,8 @@ def load_meped_csv(file_name, as_df=True):
 
         for key, val in mydict.items():
             # Remove all of the non-numeric characters
+            if '...' in val:
+                raise ValueError('Data not formatted correctly.')
             val = val.replace('\n', '')
             val = val.replace('[', '')
             val = val.replace(']', '')
@@ -37,6 +39,6 @@ def load_meped_csv(file_name, as_df=True):
             return mydict
 
 if __name__ == "__main__":   
-    file_name = 'data_metop0220061203.csv'
+    file_name = 'data_metop0220061216.csv'
     df = load_meped_csv(file_name)
     print(df)
