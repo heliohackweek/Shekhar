@@ -21,6 +21,7 @@ def load_meped_csv(file_name, as_df=True, remove_duplicate_cols=True):
         val = val.replace('\n', '')
         val = val.replace('[', '')
         val = val.replace(']', '')
+        val = val.replace(',', '')
 
         mydict[key] = np.array(val.split()).astype(float)
 
