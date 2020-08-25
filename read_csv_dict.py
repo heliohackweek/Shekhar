@@ -39,6 +39,6 @@ def load_meped_csv(file_name, as_df=True):
             return mydict
 
 if __name__ == "__main__":   
-    file_name = 'data_metop0220061216.csv'
+    file_name = './csv_daily_data/data_metop0220061206.csv'
     df = load_meped_csv(file_name)
     print(df)
