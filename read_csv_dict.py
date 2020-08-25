@@ -20,7 +20,7 @@ def load_meped_csv(file_name, as_df=True):
         for key, val in mydict.items():
             # Remove all of the non-numeric characters
             if '...' in val:
-                raise ValueError('Data not formatted correctly.')
+                raise ValueError('The metop data is not formatted correctly.')
             val = val.replace('\n', '')
             val = val.replace('[', '')
             val = val.replace(']', '')
