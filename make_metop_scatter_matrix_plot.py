@@ -16,9 +16,8 @@ df_list = [read_csv_dict.load_meped_csv(str(metop_path))
             for metop_path in metop_paths]
 df_concat = pd.concat(df_list)
 
-# # df = df[df.mlt > 20 ]
-# # df.hist()
+# df = df[df.mlt > 20 ] # Filter by MLT.
+# df.hist()
 pd.plotting.scatter_matrix(df_concat, alpha=0.2)
-# # df.plot()
-# # plt.tight_layout()
+# df.plot()
 plt.show()
