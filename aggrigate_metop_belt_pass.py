@@ -52,31 +52,22 @@ def findTimeBreaks(time, threshold_min=10):
 
 startInd, endInd = findTimeBreaks(df_filtered.index)
 
-for start_index, end_index in zip(startInd[:5], endInd):
-    df_filtered.iloc[start_index:end_index, :]
+# Now we know how many radiation belt passes there are, create and populate a DataFrame
+# with the aggrigate values.
+df_agg = pd.DataFrame(data=np.nan*np.ones((len(startInd), len(df_filtered.columns))), 
+                        columns=df_filtered.columns, 
+                        index=np.array(df_filtered.index)[startInd])
+# Loop over each start-end radiation pass index and aggrigate the columns for each 
+# sub-DataFrame
+for i, (start_index, end_index) in enumerate(zip(startInd, endInd)):
+    df_agg.iloc[i, :] = df_filtered.iloc[start_index:end_index, :].agg(stat_method)
 
-# # Groupby orbit
-# groups = df_filtered.groupby(pd.Grouper(freq=f'{orbit_period_min}min', origin='start'))
+df_agg.to_csv(f'metop_rad_belt_passes_{stat_method}.csv', index_label='dateTime')
 
-# df_agg = groups.agg(['min', 'mean', 'max', 'median'])
+### PLOTS ###
+fig, ax = plt.subplots(3, 1, sharex=True)
 
-# ### Print the aggrigated values.
-# multiindex_tuples = [('Kp', 'median'), ('mep06', 'median'), ('mep05', 'median')]
-# print(df_agg.loc[:, multiindex_tuples])
-
-# # Pick one stat method and flatten df_agg multi-index.
-# df_agg_flattened = df_agg.loc[:, (slice(None), stat_method)]
-# df_agg_flattened.columns = df_agg_flattened.columns.get_level_values(0)
-# # Add suffix to remind the user what stat do these values represent.
-# # df_agg_flattened.columns += f'_{stat_method}'
-# # Save to a csv file after dropping nans.
-# df_agg_flattened = df_agg_flattened.dropna(axis=0)
-# df_agg_flattened.to_csv(f'metop_rad_belt_passes_{stat_method}.csv')
-
-# ### PLOTS ###
-# fig, ax = plt.subplots(3, 1, sharex=True)
-
-# df_agg.loc[:, 'Dst'].plot(ax=ax[0])
-# df_agg.loc[:, 'mep06'].plot(ax=ax[1])
-# df_agg.loc[:, 'me03'].plot(ax=ax[2])
-# plt.show()
+df_agg.loc[:, 'Dst'].plot(ax=ax[0])
+df_agg.loc[:, 'mep06'].plot(ax=ax[1])
+df_agg.loc[:, 'me03'].plot(ax=ax[2])
+plt.show()
