@@ -1,6 +1,6 @@
-# Install this package into a virtual enviroment (venv) with the 
-# following three shell commands:
-# python3 -m venv env
+# Install this package and dependencies into a virtual enviroment 
+# (venv) with the following three shell commands:
+# python3.8 -m venv env
 # source /env/bin/activate
 # pip3 install -r requirements.txt
 python-dateutil==2.8.1
