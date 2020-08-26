@@ -12,10 +12,11 @@ import pathlib
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 import read_csv
 
-orbit_period_min = 25
+# orbit_period_min = 25
 stat_method='median'
 
 # Search for all the metop csv files.
@@ -37,28 +38,45 @@ df_filtered = df_concat[(df_concat.Lval > 4) &
                       (df_concat.mep05 == 0) &
                       (df_concat.me03 > df_concat.mep06)]
 
-# Groupby orbit
-groups = df_filtered.groupby(pd.Grouper(freq=f'{orbit_period_min}min'))
+# Group by radiation belt passes.
+# First define a function that identifies times where there are breaks in the data.
+def findTimeBreaks(time, threshold_min=10):
+    """
+    Find time breaks in the the time array greater than threshold_min 
+    """
+    dt = (time[1:] - time[:-1]).seconds
+    consecutiveFlag = np.where(dt > threshold_min*60)[0]
+    startInd = np.insert(consecutiveFlag+1, 0, 0)
+    endInd = np.insert(consecutiveFlag, len(consecutiveFlag), len(time)-1) + 1
+    return startInd, endInd
 
-df_agg = groups.agg(['min', 'mean', 'max', 'median'])
+startInd, endInd = findTimeBreaks(df_filtered.index)
 
-### Print the aggrigated values.
-multiindex_tuples = [('Kp', 'median'), ('mep06', 'median'), ('mep05', 'median')]
-print(df_agg.loc[:, multiindex_tuples])
+for start_index, end_index in zip(startInd[:5], endInd):
+    df_filtered.iloc[start_index:end_index, :]
 
-# Pick one stat method and flatten df_agg multi-index.
-df_agg_flattened = df_agg.loc[:, (slice(None), stat_method)]
-df_agg_flattened.columns = df_agg_flattened.columns.get_level_values(0)
-# Add suffix to remind the user what stat do these values represent.
-# df_agg_flattened.columns += f'_{stat_method}'
-# Save to a csv file after dropping nans.
-df_agg_flattened = df_agg_flattened.dropna(axis=0)
-df_agg_flattened.to_csv(f'metop_rad_belt_passes_{stat_method}.csv')
+# # Groupby orbit
+# groups = df_filtered.groupby(pd.Grouper(freq=f'{orbit_period_min}min', origin='start'))
 
-### PLOTS ###
-fig, ax = plt.subplots(3, 1, sharex=True)
+# df_agg = groups.agg(['min', 'mean', 'max', 'median'])
 
-df_agg.loc[:, 'Dst'].plot(ax=ax[0])
-df_agg.loc[:, 'mep06'].plot(ax=ax[1])
-df_agg.loc[:, 'me03'].plot(ax=ax[2])
-plt.show()
+# ### Print the aggrigated values.
+# multiindex_tuples = [('Kp', 'median'), ('mep06', 'median'), ('mep05', 'median')]
+# print(df_agg.loc[:, multiindex_tuples])
+
+# # Pick one stat method and flatten df_agg multi-index.
+# df_agg_flattened = df_agg.loc[:, (slice(None), stat_method)]
+# df_agg_flattened.columns = df_agg_flattened.columns.get_level_values(0)
+# # Add suffix to remind the user what stat do these values represent.
+# # df_agg_flattened.columns += f'_{stat_method}'
+# # Save to a csv file after dropping nans.
+# df_agg_flattened = df_agg_flattened.dropna(axis=0)
+# df_agg_flattened.to_csv(f'metop_rad_belt_passes_{stat_method}.csv')
+
+# ### PLOTS ###
+# fig, ax = plt.subplots(3, 1, sharex=True)
+
+# df_agg.loc[:, 'Dst'].plot(ax=ax[0])
+# df_agg.loc[:, 'mep06'].plot(ax=ax[1])
+# df_agg.loc[:, 'me03'].plot(ax=ax[2])
+# plt.show()
