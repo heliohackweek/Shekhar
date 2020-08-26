@@ -11,7 +11,7 @@ import spacepy.omni
 h5py.get_config().default_file_mode = 'r'
 
 
-def download_solar_wind(t, lag_hr, dbase='QDhourly', to_df=True):
+def get_solar_wind_data(t, lag_hr, dbase='QDhourly', to_df=True):
     """
     Given a start time in strng or datetime.datetime format,
     use the spacepy library to download the solar wind data

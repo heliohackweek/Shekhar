@@ -110,11 +110,51 @@ class AggMetopRadPasses:
         return
 
 
+class AppendSW(AggMetopRadPasses):
+    def __init__(self, csv_dir='csv_daily_data/', stat_method='median'):
+        """
+        Child class of AggMetopRadPasses that adds functionality to add
+        the solar wind (SW) data with one time lag and at some point it 
+        will include a lag time series.
+        """
+        super().__init__(csv_dir=csv_dir, stat_method=stat_method)
+        return
+
+    def append_single_sw_lag(self, lag_hr):
+        """
+        Appends and replaced the SW columns in df_agg with the 
+        time-lagged parameter.
+        """
+        if not hasattr(self, 'df_agg'):
+            raise AttributeError('df_agg does not exist. Try running'
+                        ' the filter_df and agg_passes methods first.')
+
+        for t_i in self.df_agg.index:
+            # Get the solar wind parameters
+            sw_df = get_solar_wind_data.get_solar_wind_data(
+                t_i-pd.Timedelta(hours=lag_hr), lag_hr=0)
+            # Awfull indexing, but seems to work!
+            copy_keys = ['dens', 'velo', 'Pdyn', 'ByIMF','BzIMF']
+            self.df_agg.loc[t_i, copy_keys] = sw_df.loc[:, copy_keys].to_numpy()
+        return
+
+
 if __name__ == '__main__':
-    agg = AggMetopRadPasses(stat_method='median')
+    ### The API for the basic aggrigate class.
+    # agg = AggMetopRadPasses(stat_method='median')
+    # agg.filter_df()
+    # agg.agg_passes()
+    # agg.save_agg_data()
+
+    ### The same API as above and it changes the solar wind parameters 
+    ### to the ones lag_hr prior.
+    lag_hr=6
+    agg = AppendSW(stat_method='median')
     agg.filter_df()
     agg.agg_passes()
+    agg.append_single_sw_lag(lag_hr)
     agg.save_agg_data()
+
 
 
     ### PLOTS ###
