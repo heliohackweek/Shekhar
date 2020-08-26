@@ -24,7 +24,9 @@ df_concat = pd.concat(df_list)
 # Filter by the Lval to get only the radiation belt values
 df_concat = df_concat[(df_concat.Lval > 4) & 
                       (df_concat.Lval < 8) & 
-                      (df_concat.mlt > 18)]
+                      (df_concat.mlt > 16) &
+                      (df_concat.mep05 == 0) &
+                      (df_concat.me03 > df_concat.mep06)]
 
 # Groupby orbit
 groups = df_concat.groupby(pd.Grouper(freq=f'{orbit_period_min}min'))
@@ -32,11 +34,12 @@ groups = df_concat.groupby(pd.Grouper(freq=f'{orbit_period_min}min'))
 # for key, group in groups:
 #     print(key, '\n', group.loc[:, ['Lval', 'mlt', 'mep06']])
 
-agg_df = groups.agg(['min', 'mean', 'max'])
+agg_df = groups.agg(['min', 'mean', 'max', 'median'])
 print(agg_df.loc[:, [('Kp', 'mean')]])
 
-fig, ax = plt.subplots(2, 1)
+fig, ax = plt.subplots(3, 1, sharex=True)
 
 agg_df.loc[:, 'Dst'].plot(ax=ax[0])
 agg_df.loc[:, 'mep06'].plot(ax=ax[1])
+agg_df.loc[:, 'me03'].plot(ax=ax[2])
 plt.show()
