@@ -68,11 +68,11 @@ dataset = dataset.drop(columns=dropcolumns)
 
 shufval = 0    # set 1 to separate testing set through shuffling, 0 to window
 testfrac = .8  # fraction of set to use for training
-boolval = 0    # 0 for linear regression, 1 for boolean threshold
-boolthresh = 1.0  # if boolean regression, set threshold of mep06 to count as an event
+boolval = 1    # 0 for linear regression, 1 for boolean threshold
+boolthresh = .8  # if boolean regression, set threshold of mep06 to count as an event
 setlen = len(dataset)
 trainmed = 1  # if 0, train on the max of mep06, if 1, train on the median instead
-estimators = 1000  # number of estimators in random forest
+estimators = 300  # number of estimators in random forest
 
 if (shufval):
   train_dataset = dataset.sample(frac=testfrac,random_state=0)
@@ -93,16 +93,16 @@ else:
   x_test = test_dataset.drop(columns = 'medmep06')
 
 if (boolval):
-  y_train = (y_train>boolthresh)*1
-  y_test = (y_test>boolthresh)*1
+  y_train = (y_train>boolthresh)*1.
+  y_test = (y_test>boolthresh)*1.
 
 regressor = RandomForestRegressor(n_estimators = estimators,  oob_score = True, random_state = 0) 
 regressor.fit(x_train, y_train)  
 Y_pred = regressor.predict(x_test)
 if (boolval):
- Y_pred = (Y_pred>boolthresh)*1  
-mae=metrics.mean_absolute_error(y_test, Y_pred)
-mse=metrics.mean_squared_error(y_test, Y_pred)
+  Y_pred_bool = (Y_pred>boolthresh)*1.  
+mae=metrics.mean_absolute_error(y_test, Y_pred_bool)
+mse=metrics.mean_squared_error(y_test, Y_pred_bool)
 trainsc = regressor.score(x_train, y_train) 
 testsc = regressor.score(x_test, y_test)
 regoob = regressor.oob_score_
@@ -113,8 +113,7 @@ indices = np.argsort(importances)[::-1]
 
 ## Evaluate performance
 print("mean absolute error: %f;  mean squared error: %f" % (mae, mse))
-print('R^2 Training Score: {:.2f} \nOOB Score: {:.2f} \nR^2 Validation Score: {:.2f}'.format(regressor.score(x_train, y_train), 
-                                                                                             regressor.oob_score_,
+print('R^2 Training Score: {:.2f} \nOOB Score: {:.2f} \nR^2 Validation Score: {:.2f}'.format(regressor.score(x_train, y_train),                                                                                   regressor.oob_score_,
                                                                                              regressor.score(x_test, y_test)))
 
 print("Feature ranking:")
@@ -131,6 +130,10 @@ plt.xticks(range(x_train.shape[1]), indices)
 plt.xlim([-1, x_train.shape[1]])
 plt.show()
 
+cm = sklearn.metrics.confusion_matrix(y_test, Y_pred_bool).ravel()
+# true negatives, false positives, false negatives, true positives
+print(cm)
+
 # set up evaluation table
 # parameters are [shufval, testfrac, boolval, boolthresh, setlen, trainmed, estimators]
 params = np.array([shufval, testfrac, boolval, boolthresh, setlen, trainmed, estimators])
@@ -138,4 +141,3 @@ eval_table = pd.DataFrame([params,params])
 eval_table.shape
 eval_table.index = ['mae', 'mse']
 eval_table.columns = ['shufval', 'testfrac', 'boolval', 'boolthresh', 'setlen', 'trainmed', 'estimators']
-
