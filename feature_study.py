@@ -69,10 +69,10 @@ dataset = dataset.drop(columns=dropcolumns)
 testfrac = .8  # fraction of set to use for training
 boolval = 1    # 0 for linear regression, 1 for boolean threshold
 boolthresh = .8  # if boolean regression, set threshold of mep06 to count as an event
-setlen = len(dataset)
 shufval = 0    # set 1 to separate testing set through shuffling, 0 to window
 trainmed = 1  # if 0, train on the max of mep06, if 1, train on the median instead
 estimators = 300  # number of estimators in random forest
+setlen = len(dataset)
 
 if (shufval):
   train_dataset = dataset.sample(frac=testfrac,random_state=0)
