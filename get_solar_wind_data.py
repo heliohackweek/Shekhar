@@ -38,6 +38,7 @@ def get_solar_wind_data(t, lag_hr, dbase='QDhourly', to_df=True):
                    "don't have the data, run these two commands:\n"
                    "import spacepy.toolbox as tb\n"
                    "tb.update(omni=True)")
+        raise
 
     if to_df: # Return a DataFrame
         cast_data_dict = {}

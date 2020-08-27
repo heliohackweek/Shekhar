@@ -149,7 +149,7 @@ if __name__ == '__main__':
     ### The same API as above and it changes the solar wind parameters 
     ### to the ones lag_hr prior.
     lag_hr=6
-    agg = AppendSW(stat_method='median')
+    agg = AppendSW(stat_method='min')
     agg.filter_df()
     agg.agg_passes()
     agg.append_single_sw_lag(lag_hr)
