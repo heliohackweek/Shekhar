@@ -122,8 +122,8 @@ class AppendSW(AggMetopRadPasses):
 
     def append_single_sw_lag(self, lag_hr):
         """
-        Appends and replaced the SW columns in df_agg with the 
-        time-lagged parameter.
+        Replaces the SW columns in df_agg with the 
+        time-lagged parameter lag_hr prior.
         """
         if not hasattr(self, 'df_agg'):
             raise AttributeError('df_agg does not exist. Try running'
@@ -138,6 +138,43 @@ class AppendSW(AggMetopRadPasses):
             self.df_agg.loc[t_i, copy_keys] = sw_df.loc[:, copy_keys].to_numpy()
         return
 
+    def append_multiple_sw_lag(self, max_lag_hr, single_level_index=True):
+        """
+        Appends the SW columns in df_agg with the time-lagged time history 
+        of parameters up to max_lag_hr prior. The lagged keys have the 
+        "_lagN" suffix where N is the lag in the number of hours.
+        """
+        if not hasattr(self, 'df_agg'):
+            raise AttributeError('df_agg does not exist. Try running'
+                        ' the filter_df and agg_passes methods first.')
+
+        # Create the keys with the _lagN suffix and make a 
+        sw_keys = ['dens', 'velo', 'Pdyn', 'ByIMF','BzIMF']
+        if single_level_index:
+            lagged_keys = np.ones((len(sw_keys), (max_lag_hr+1)), dtype=object)
+            for i, sw_key in enumerate(sw_keys):
+                # for j, lag_hr in enumerate(np.arange(max_lag_hr, -1, -1)):
+                for j, lag_hr in enumerate(np.arange(max_lag_hr+1)):
+                    lagged_keys[i, j] = f'{sw_key}_lag{lag_hr}'
+            # Flatten the 2d keys array for the csv
+            lagged_keys = lagged_keys.flatten()
+        else:
+            # EXPERMINETAL!
+            lagged_keys = pd.MultiIndex.from_product([sw_keys, np.arange(max_lag_hr+1)],
+                           names=['sw', 'lag'])
+        self.df_sw = pd.DataFrame(index=self.df_agg.index, columns=lagged_keys)
+
+        for t_i in self.df_agg.index:
+            # Get the solar wind parameters
+            df_sw_one_set = get_solar_wind_data.get_solar_wind_data(t_i, lag_hr=max_lag_hr)
+            
+            for sw_key in sw_keys:
+                one_set_of_lagged_keys = [key for key in self.df_sw if sw_key in key]
+                self.df_sw.loc[t_i, one_set_of_lagged_keys] = df_sw_one_set.loc[:, sw_key].to_numpy()[::-1]
+        self.df_agg = self.df_agg.merge(self.df_sw, left_index=True, right_index=True)
+        return
+
+
 
 if __name__ == '__main__':
     ### The API for the basic aggrigate class.
@@ -149,18 +186,18 @@ if __name__ == '__main__':
     ### The same API as above and it changes the solar wind parameters 
     ### to the ones lag_hr prior.
     lag_hr=6
-    agg = AppendSW(stat_method='min')
+    agg = AppendSW(stat_method='median')
     agg.filter_df()
     agg.agg_passes()
-    agg.append_single_sw_lag(lag_hr)
-    agg.save_agg_data()
+    agg.append_multiple_sw_lag(6)
+    # agg.append_single_sw_lag(lag_hr)
+    save_file_name=f'metop_rad_belt_{agg.stat_method}_vals_lagged_sw.csv'
+    agg.save_agg_data(save_file_name=save_file_name)
 
+    # ### PLOTS ###
+    # fig, ax = plt.subplots(3, 1, sharex=True)
 
-
-    ### PLOTS ###
-    fig, ax = plt.subplots(3, 1, sharex=True)
-
-    agg.df_agg.loc[:, 'Dst'].plot(ax=ax[0])
-    agg.df_agg.loc[:, 'mep06'].plot(ax=ax[1])
-    agg.df_agg.loc[:, 'me03'].plot(ax=ax[2])
-    plt.show()
+    # agg.df_agg.loc[:, 'Dst'].plot(ax=ax[0])
+    # agg.df_agg.loc[:, 'mep06'].plot(ax=ax[1])
+    # agg.df_agg.loc[:, 'me03'].plot(ax=ax[2])
+    # plt.show()
