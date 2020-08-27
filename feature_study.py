@@ -66,11 +66,11 @@ dataset = dataset.drop(columns=dropcolumns)
 # loading in the data and separating out the x and y
 # and the train and test set 
 
-shufval = 0    # set 1 to separate testing set through shuffling, 0 to window
 testfrac = .8  # fraction of set to use for training
 boolval = 1    # 0 for linear regression, 1 for boolean threshold
 boolthresh = .8  # if boolean regression, set threshold of mep06 to count as an event
 setlen = len(dataset)
+shufval = 0    # set 1 to separate testing set through shuffling, 0 to window
 trainmed = 1  # if 0, train on the max of mep06, if 1, train on the median instead
 estimators = 300  # number of estimators in random forest
 
@@ -113,7 +113,7 @@ indices = np.argsort(importances)[::-1]
 
 ## Evaluate performance
 print("mean absolute error: %f;  mean squared error: %f" % (mae, mse))
-print('R^2 Training Score: {:.2f} \nOOB Score: {:.2f} \nR^2 Validation Score: {:.2f}'.format(regressor.score(x_train, y_train),                                                                                   regressor.oob_score_,
+print('R^2 Training Score: {:.2f} \nOOB Score: {:.2f} \nR^2 Test Score: {:.2f}'.format(regressor.score(x_train, y_train),                                                                                   regressor.oob_score_,
                                                                                              regressor.score(x_test, y_test)))
 
 print("Feature ranking:")
@@ -137,7 +137,8 @@ print(cm)
 # set up evaluation table
 # parameters are [shufval, testfrac, boolval, boolthresh, setlen, trainmed, estimators]
 params = np.array([shufval, testfrac, boolval, boolthresh, setlen, trainmed, estimators])
-eval_table = pd.DataFrame([params,params])
+eval_table = pd.DataFrame([params, params, params, params, params])
 eval_table.shape
-eval_table.index = ['mae', 'mse']
+eval_table.index = ['mae', 'mse', 'r2train', 'r2test', 'oob']
 eval_table.columns = ['shufval', 'testfrac', 'boolval', 'boolthresh', 'setlen', 'trainmed', 'estimators']
+
